@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Username Validity & Existence Checker</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success-bg: rgba(16, 185, 129, 0.15);
+            --success-border: #10b981;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --danger-border: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            padding: 32px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .result-box {
+            display: none;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 10px;
+            font-size: 14px;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        .result-box.exists {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: #34d399;
+        }
+
+        .result-box.not-exists {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: #f87171;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 28px 0;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sample-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .sample-tag {
+            background: #334155;
+            color: #cbd5e1;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .sample-tag:hover {
+            background: #475569;
+            color: #fff;
+        }
+
+        .add-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-form button {
+            background: #22c55e;
+        }
+
+        .add-form button:hover {
+            background: #16a34a;
+        }
+
+        .api-info {
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            text-align: center;
+        }
+
+        .api-info code {
+            color: #a5b4fc;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <span class="badge">Spring Boot + MySQL</span>
+        <h1>Username Checker</h1>
+        <p class="subtitle">Quickly verify if a username already exists in MySQL</p>
+    </div>
+
+    <!-- Check Username Form -->
+    <div class="input-group">
+        <input type="text" id="usernameInput" placeholder="Enter username (e.g. admin)" autofocus autocomplete="off">
+        <button id="checkBtn" onclick="checkUsername()">Check</button>
+    </div>
+
+    <div id="resultBox" class="result-box"></div>
+
+    <!-- Quick Samples -->
+    <div class="section-title">Pre-seeded Demo Users (Click to test)</div>
+    <div class="sample-tags">
+        <span class="sample-tag" onclick="fillAndCheck('admin')">admin</span>
+        <span class="sample-tag" onclick="fillAndCheck('john_doe')">john_doe</span>
+        <span class="sample-tag" onclick="fillAndCheck('jane_smith')">jane_smith</span>
+        <span class="sample-tag" onclick="fillAndCheck('alex')">alex</span>
+        <span class="sample-tag" onclick="fillAndCheck('unknown_user')">unknown_user</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Add New User Form -->
+    <div class="section-title">Add New Username to MySQL</div>
+    <div class="add-form">
+        <input type="text" id="newUsernameInput" placeholder="New username to register">
+        <button onclick="addUser()">Add User</button>
+    </div>
+    <div id="addResultBox" class="result-box"></div>
+
+    <!-- API Reference -->
+    <div class="api-info">
+        REST API: <code>GET /api/users/check?username={username}</code>
+    </div>
+</div>
+
+<script>
+    const usernameInput = document.getElementById('usernameInput');
+    const resultBox = document.getElementById('resultBox');
+    const newUsernameInput = document.getElementById('newUsernameInput');
+    const addResultBox = document.getElementById('addResultBox');
+
+    usernameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') checkUsername();
+    });
+
+    newUsernameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addUser();
+    });
+
+    function fillAndCheck(name) {
+        usernameInput.value = name;
+        checkUsername();
+    }
+
+    async function checkUsername() {
+        const username = usernameInput.value.trim();
+        if (!username) {
+            showResult(resultBox, 'not-exists', '⚠️ Please enter a username.');
+            return;
+        }
+
+        resultBox.style.display = 'block';
+        resultBox.className = 'result-box';
+        resultBox.style.background = '#334155';
+        resultBox.style.color = '#cbd5e1';
+        resultBox.textContent = 'Checking MySQL database...';
+
+        try {
+            const res = await fetch(`/api/users/check?username=${encodeURIComponent(username)}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                showResult(resultBox, 'not-exists', data.message || 'Error checking username');
+                return;
+            }
+
+            if (data.exists) {
+                showResult(resultBox, 'exists', `✅ Exists: "${data.username}" is already taken in the database.`);
+            } else {
+                showResult(resultBox, 'not-exists', `❌ Not Found: "${data.username}" does not exist in the database.`);
+            }
+        } catch (err) {
+            showResult(resultBox, 'not-exists', '⚠️ Could not connect to server. Ensure Spring Boot is running and MySQL is reachable.');
+        }
+    }
+
+    async function addUser() {
+        const username = newUsernameInput.value.trim();
+        if (!username) {
+            showResult(addResultBox, 'not-exists', '⚠️ Please enter a username to add.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/users/add?username=${encodeURIComponent(username)}`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+
+            if (res.status === 201) {
+                showResult(addResultBox, 'exists', `🎉 Success: "${username}" has been added to MySQL!`);
+                newUsernameInput.value = '';
+            } else {
+                showResult(addResultBox, 'not-exists', data.message || 'Could not add username.');
+            }
+        } catch (err) {
+            showResult(addResultBox, 'not-exists', '⚠️ Error contacting server.');
+        }
+    }
+
+    function showResult(el, type, text) {
+        el.style.display = 'block';
+        el.className = `result-box ${type}`;
+        el.textContent = text;
+    }
+</script>
+
+</body>
+</html>
